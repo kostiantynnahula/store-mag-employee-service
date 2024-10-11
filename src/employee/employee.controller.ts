@@ -1,7 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { Auth0Service } from 'src/auth0/auth0.service';
 import {
   CreateEmployeeDto,
   UpdateEmployeeDto,
@@ -11,33 +10,30 @@ import {
 
 @Controller('employee')
 export class EmployeeController {
-  constructor(
-    private readonly service: EmployeeService,
-    private readonly auth0Service: Auth0Service,
-  ) {}
+  constructor(private readonly service: EmployeeService) {}
 
   @MessagePattern(EmployeeTopics.LIST_EMPLOYEE)
   async list(@Payload() query: ListEmployeeQuery) {
-    return await this.auth0Service.getUsers();
+    return await this.service.getUsers();
   }
 
   @MessagePattern(EmployeeTopics.CREATE_EMPLOYEE)
   async create(@Payload() data: CreateEmployeeDto) {
-    return await this.auth0Service.createUser(data);
+    return await this.service.createUser(data);
   }
 
   @MessagePattern(EmployeeTopics.UPDATE_EMPLOYEE)
   async update(@Payload() data: UpdateEmployeeDto) {
-    return await this.auth0Service.updateUser(data);
+    return await this.service.updateUser(data);
   }
 
   @MessagePattern(EmployeeTopics.DELETE_EMPLOYEE)
   async delete(@Payload() id: string) {
-    return await this.auth0Service.deleteUser(id);
+    return await this.service.deleteUser(id);
   }
 
   @MessagePattern(EmployeeTopics.FIND_EMPLOYEE)
   async findById(@Payload() id: string) {
-    return await this.auth0Service.getUser(id);
+    return await this.service.getUser(id);
   }
 }
