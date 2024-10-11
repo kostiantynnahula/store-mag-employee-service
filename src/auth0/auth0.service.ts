@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CreateEmployeeDto } from 'src/employee/dto/create-employee.dto';
-import { UpdateEmployeeDto } from 'src/employee/dto/update-employee.dto';
 import { generateRandomPassword } from 'src/utils/helpers/random-password.helper';
 import { LocalCache } from 'src/utils/services/local-cache.service';
-
+import { CreateEmployeeDto, UpdateEmployeeDto } from 'store-mag-types';
 @Injectable()
 export class Auth0Service {
   private clientId: string;

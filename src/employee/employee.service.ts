@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Employee } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateEmployeeDto } from './dto/create-employee.dto';
-import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { CreateEmployeeDto, UpdateEmployeeDto } from 'store-mag-types';
 
 @Injectable()
 export class EmployeeService {
