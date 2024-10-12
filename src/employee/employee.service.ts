@@ -63,6 +63,10 @@ export class EmployeeService extends Auth0Service {
       headers: await this.getHeaders(),
     });
 
+    if (response.status !== 200) {
+      throw new Error('Failed to get user');
+    }
+
     return response.data;
   }
 

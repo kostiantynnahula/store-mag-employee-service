@@ -12,6 +12,7 @@ async function bootstrap() {
       transport: Transport.KAFKA,
       options: {
         client: {
+          clientId: 'employee',
           brokers: [kafkaBrokers],
         },
         consumer: {
