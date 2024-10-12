@@ -1,54 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { generateRandomPassword } from 'src/utils/helpers/random-password.helper';
-import { LocalCache } from 'src/utils/services/local-cache.service';
-import { CreateEmployeeDto, UpdateEmployeeDto } from 'store-mag-types';
+import { Auth0Service } from 'src/utils/services/auth0.service';
+import {
+  CreateEmployeeDto,
+  UpdateEmployeeDto,
+  Auth0User,
+  ListQuery,
+} from 'store-mag-types';
+import axios from 'axios';
 
 @Injectable()
-export class EmployeeService {
-  private clientId: string;
-  private clientSecret: string;
-  private audience: string;
-  private domain: string;
-
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly localCache: LocalCache<string>,
-  ) {
-    this.clientId = configService.get('AUTH0_CLIENT_ID');
-    this.clientSecret = configService.get('AUTH0_CLIENT_SECRET');
-    this.audience = configService.get('AUTH0_AUDIENCE');
-    this.domain = configService.get('AUTH0_DOMAIN');
-  }
-
-  async getAccessToken(): Promise<string> {
-    const cachedToken = this.localCache.get('auth0-access-token');
-
-    if (cachedToken) {
-      return cachedToken;
-    }
-
-    const response = await fetch(`https://${this.domain}/oauth/token`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
-        audience: this.audience,
-        grant_type: 'client_credentials',
-      }),
-    });
-
-    const data = await response.json();
-
-    this.localCache.set('auth0-access-token', data.access_token, 60);
-
-    return data.access_token;
-  }
-
-  async createUser({ storeId, ...data }: CreateEmployeeDto): Promise<void> {
-    const accessToken = await this.getAccessToken();
-
+export class EmployeeService extends Auth0Service {
+  /**
+   * Create employee as a user in Auth0
+   * @param {CreateEmployeeDto} { storeId, ...data }
+   * @returns {Promise<Auth0User>}
+   */
+  async create({ storeId, ...data }: CreateEmployeeDto): Promise<Auth0User> {
     const password = generateRandomPassword();
     const user_metadata = { storeId };
 
@@ -59,62 +27,55 @@ export class EmployeeService {
       connection: 'Username-Password-Authentication',
     };
 
-    const response = await fetch(`https://${this.domain}/api/v2/users`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await axios.post(
+      `${this.requestPath}/api/v2/users`,
+      payload,
+      { headers: await this.getHeaders() },
+    );
 
-    const result = await response.json();
-
-    if (result.statusCode) {
-      throw new Error(result.message);
+    if (response.data.statusCode) {
+      throw new Error(response.data.message);
     }
 
-    return result;
+    return response.data;
   }
 
-  async getUsers() {
-    const accessToken = await this.getAccessToken();
-
-    const response = await fetch(`https://${this.domain}/api/v2/users`, {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
+  /**
+   * List employees
+   * @param {ListQuery} query
+   * @returns {Promise<Auth0User[]>}
+   */
+  async list(query: ListQuery): Promise<Auth0User[]> {
+    const response = await axios.get(`${this.requestPath}/api/v2/users`, {
+      headers: await this.getHeaders(),
     });
 
-    const data = await response.json();
-
-    return data;
+    return response.data;
   }
 
-  async getUser(id: string) {
-    const accessToken = await this.getAccessToken();
-
-    const response = await fetch(`https://${this.domain}/api/v2/users/${id}`, {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
+  /**
+   * Get employee by id
+   * @param {string} id
+   * @returns {Promise<Auth0User>}
+   */
+  async get(id: string): Promise<Auth0User> {
+    const response = await axios.get(`${this.requestPath}/api/v2/users/${id}`, {
+      headers: await this.getHeaders(),
     });
 
-    const data = await response.json();
-
-    return data;
+    return response.data;
   }
 
-  async deleteUser(id: string) {
-    const accessToken = await this.getAccessToken();
-
-    const response = await fetch(`https://${this.domain}/api/v2/users/${id}`, {
-      method: 'DELETE',
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
-      redirect: 'follow',
-    });
+  /**
+   * Delete employee by id
+   * @param {string} id
+   * @returns {Promise<boolean>}
+   */
+  async delete(id: string): Promise<boolean> {
+    const response = await axios.delete(
+      `${this.requestPath}/api/v2/users/${id}`,
+      { headers: await this.getHeaders() },
+    );
 
     if (response.status !== 204) {
       throw new Error('Failed to delete user');
@@ -123,30 +84,32 @@ export class EmployeeService {
     return true;
   }
 
-  async updateUser({ storeId, id, ...data }: UpdateEmployeeDto) {
-    const accessToken = await this.getAccessToken();
-
+  /**
+   * Update employee by id
+   * @param {UpdateEmployeeDto} { storeId, id, ...data }
+   * @returns {Promise<Auth0User>}
+   */
+  async update({
+    storeId,
+    id,
+    ...data
+  }: UpdateEmployeeDto): Promise<Auth0User> {
     const payload = { ...data, user_metadata: undefined };
 
     if (storeId) {
       payload.user_metadata = { storeId };
     }
 
-    const response = await fetch(`https://${this.domain}/api/v2/users/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'content-type': 'application/json',
-        authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    const response = await axios.patch(
+      `${this.requestPath}/api/v2/users/${id}`,
+      payload,
+      { headers: await this.getHeaders() },
+    );
 
-    const result = await response.json();
-
-    if (result.statusCode) {
-      throw new Error(result.message);
+    if (response.data.statusCode) {
+      throw new Error(response.data.message);
     }
 
-    return result;
+    return response.data;
   }
 }
