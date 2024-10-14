@@ -7,14 +7,17 @@ import {
   ListQuery,
   EmployeeTopics,
   badRequest,
+  Role,
 } from 'store-mag-types';
 import { StoreService } from 'src/store/store.service';
+import { RoleService } from 'src/role/role.service';
 
 @Controller('employee')
 export class EmployeeController {
   constructor(
     private readonly service: EmployeeService,
     private readonly storeService: StoreService,
+    private readonly roleService: RoleService,
   ) {}
 
   @MessagePattern(EmployeeTopics.LIST_EMPLOYEE)
@@ -32,7 +35,11 @@ export class EmployeeController {
       }
     }
 
-    return await this.service.create(data);
+    const employee = await this.service.create(data);
+
+    await this.roleService.assignEmployeeRole(employee.user_id);
+
+    return employee;
   }
 
   @MessagePattern(EmployeeTopics.UPDATE_EMPLOYEE)
