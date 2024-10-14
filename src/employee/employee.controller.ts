@@ -7,7 +7,6 @@ import {
   ListQuery,
   EmployeeTopics,
   badRequest,
-  Role,
 } from 'store-mag-types';
 import { StoreService } from 'src/store/store.service';
 import { RoleService } from 'src/role/role.service';

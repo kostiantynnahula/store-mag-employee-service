@@ -13,13 +13,25 @@ export class RoleService extends Auth0Service {
     return response.data;
   }
 
+  /**
+   * Get role by name
+   *
+   * @param name {Role}
+   * @returns {Promise<Auth0Role>}
+   */
   async getRoleByName(name: Role): Promise<Auth0Role> {
     const roles = await this.getRoles();
 
     return roles.find((role) => role.name === name);
   }
 
-  async assignEmployeeRole(userId: string) {
+  /**
+   * Assign a role to a user
+   *
+   * @param {string} userId
+   * @returns {Promise<any>}
+   */
+  async assignEmployeeRole(userId: string): Promise<any> {
     const role = await this.getRoleByName(Role.EMPLOYEE);
 
     const result = await axios.post(

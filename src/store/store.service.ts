@@ -12,6 +12,12 @@ export class StoreService {
     await this.client.connect();
   }
 
+  /**
+   * Find store by id
+   *
+   * @param {string} id
+   * @returns {Promise<Store>}
+   */
   async findById(id: string): Promise<Store> {
     const store$ = this.client.send<Store>(StoreTopics.FIND_STORE, id);
     return await firstValueFrom(store$); // Convert the Observable to a Promise

@@ -48,6 +48,13 @@ export class EmployeeService extends Auth0Service {
   async list(query: ListQuery): Promise<Auth0User[]> {
     const response = await axios.get(`${this.requestPath}/api/v2/users`, {
       headers: await this.getHeaders(),
+      params: {
+        ...query,
+        per_page: query.perPage,
+        page: query.page,
+        include_totals: query.includeTotal,
+        fields: 'email,name,user_metadata',
+      },
     });
 
     return response.data;

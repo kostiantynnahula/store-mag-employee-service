@@ -5,10 +5,29 @@ import axios from 'axios';
 
 @Injectable()
 export class Auth0Service {
+  /**
+   * Auth0 client ID
+   */
   protected readonly clientId: string;
+
+  /**
+   * Auth0 client secret
+   */
   protected readonly clientSecret: string;
+
+  /**
+   * Auth0 audience
+   */
   protected readonly audience: string;
+
+  /**
+   * Auth0 domain
+   */
   protected readonly domain: string;
+
+  /**
+   * Auth0 request path
+   */
   protected readonly requestPath: string;
 
   constructor(
@@ -22,6 +41,11 @@ export class Auth0Service {
     this.requestPath = `https://${this.domain}`;
   }
 
+  /**
+   * Get access to the Auth0 API
+   *
+   * @returns {Promise<string>}
+   */
   async getAccessToken(): Promise<string> {
     const cachedToken = this.localCache.get('auth0-access-token');
 
@@ -43,6 +67,11 @@ export class Auth0Service {
     return access_token;
   }
 
+  /**
+   * Get default headers for Auth0 API
+   *
+   * @returns {Promise<Record<string, string>}
+   */
   async getHeaders(): Promise<Record<string, string>> {
     const accessToken = await this.getAccessToken();
 

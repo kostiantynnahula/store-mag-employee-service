@@ -1,3 +1,8 @@
+/**
+ * Generate a random password with the given length.
+ * @param {number} length
+ * @returns {string}
+ */
 export const generateRandomPassword = (length: number = 12): string => {
   const upperCase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const lowerCase = 'abcdefghijklmnopqrstuvwxyz';
